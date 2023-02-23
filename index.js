@@ -1,6 +1,5 @@
 import React from 'react'
 import { Alert, Linking } from 'react-native'
-import DeviceInfo from 'react-native-device-info'
 import apisauce from 'apisauce'
 
 const createAPI = (baseURL = 'https://itunes.apple.com/') => {
@@ -19,8 +18,8 @@ const createAPI = (baseURL = 'https://itunes.apple.com/') => {
   }
 }
 
-const defaultCheckOptions = { bundleId: DeviceInfo.getBundleId(), country: undefined }
-const performCheck = ({ bundleId = defaultCheckOptions.bundleId, country } = defaultCheckOptions) => {
+const defaultCheckOptions = { bundleId: '', country: undefined, currentVersion: '' }
+const performCheck = ({ bundleId = defaultCheckOptions.bundleId, country, currentVersion = '' } = defaultCheckOptions) => {
   let updateIsAvailable = false
   const api = createAPI()
 
@@ -32,7 +31,7 @@ const performCheck = ({ bundleId = defaultCheckOptions.bundleId, country } = def
       latestInfo = response.data.results[0]
       // check for version difference
 
-      updateIsAvailable = latestInfo.version !== DeviceInfo.getVersion()
+      updateIsAvailable = latestInfo.version !== currentVersion
     }
 
     return {updateIsAvailable, ...latestInfo}
@@ -79,9 +78,7 @@ const showUpgradePrompt = (appId, {
 const promptUser = (defaultOptions = {}, versionSpecificOptions = [], bundleId, country = undefined) => {
   performCheck({ bundleId, country }).then(sirenResult => {
     if (sirenResult.updateIsAvailable) {
-      const options =
-          versionSpecificOptions.find(o => o.localVersion === DeviceInfo.getVersion())
-          || defaultOptions
+      const options = defaultOptions
 
       showUpgradePrompt(sirenResult.trackId, options)
     }
